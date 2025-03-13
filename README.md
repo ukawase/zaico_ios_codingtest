@@ -43,4 +43,4 @@ zaicoのAPIを利用するためzaicoのアカウントを登録し、APIトー�
 
 本プロジェクトを [**Duplicate** してください](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/duplicating-a-repository)（Fork しないようにしてください。必要ならプライベートリポジトリにしても大丈夫です）。今後のコミットは全てご自身のリポジトリで行ってください。
 
-次の選考を開始する前までに[課題](https://github.com/zaicodev/zaico_android_codingtest/issues/9)を確認・対応し、出来た所までで問題ありませんので、リポジトリのアドレスをご連絡ください。
+次の選考を開始する前までに[課題](https://github.com/zaicodev/zaico_ios_codingtest/issues/1)を確認・対応し、出来た所までで問題ありませんので、リポジトリのアドレスをご連絡ください。
