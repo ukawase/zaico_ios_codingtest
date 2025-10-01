@@ -15,15 +15,15 @@ struct InventoryListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent() }
             .onChange(of: isShowNewInventoryInput, { oldValue, newValue in
-              if newValue {
-                isFocus = true
-              } else {
-                isFocus = false
-              }
+                if newValue {
+                    isFocus = true
+                } else {
+                    isFocus = false
+                }
             })
             .task { await fetchData() }
     }
-  
+
     @ToolbarContentBuilder
     private func toolbarContent() -> some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
@@ -46,75 +46,76 @@ struct InventoryListView: View {
             }
         }
     }
-  
+
     private var contents: some View {
-      List {
-        Section(content: {
-          ForEach(inventories, id: \.id) { item in
-            NavigationLink {
-                InventoryDetailView(id: item.id)
-                    .navigationTitle("詳細")
-            } label: {
-                HStack {
-                    Text(String(item.id))
-                    Spacer()
-                    Text(item.title)
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
+        List {
+            Section(content: {
+                ForEach(inventories, id: \.id) { item in
+                    NavigationLink {
+                        InventoryDetailView(id: item.id)
+                            .navigationTitle("詳細")
+                    } label: {
+                        HStack {
+                            Text(String(item.id))
+                            Spacer()
+                            Text(item.title)
+                                .foregroundStyle(.primary)
+                                .lineLimit(2)
+                        }
+                        .padding(.vertical, 4)
+                    }
                 }
-                .padding(.vertical, 4)
-            }
-          }
-        }, header: {
-          if isShowNewInventoryInput {
-            newInventoryCell
-          }
-        })
-      }
+            }, header: {
+                if isShowNewInventoryInput {
+                    newInventoryCell
+                }
+            })
+        }
     }
-  
+
     // 在庫追加フォーム
-    private var newInventoryCell:  some View {
+    private var newInventoryCell: some View {
         HStack {
-          TextField("追加する在庫名", text: $newInventoryName)
-            .frame(maxWidth: .infinity)
-            .focused($isFocus)
-            .font(.body)
-            .disabled(isCreatingInventory)
-            .onSubmit {
-              if newInventoryName.isEmpty {
-                withAnimation {
-                  isShowNewInventoryInput = false
+            TextField("追加する在庫名", text: $newInventoryName)
+                .frame(maxWidth: .infinity)
+                .focused($isFocus)
+                .font(.body)
+                .disabled(isCreatingInventory)
+                .onSubmit {
+                    if newInventoryName.isEmpty {
+                        withAnimation {
+                            isShowNewInventoryInput = false
+                        }
+                    } else {
+                        Task {
+                            await createData()
+                        }
+                    }
                 }
-              } else {
+            Button(isCreatingInventory ? "追加中" : "追加") {
                 Task {
-                  await createData()
+                    await createData()
                 }
-              }
             }
-          Button( isCreatingInventory ? "追加中" : "追加") {
-            Task {
-              await createData()
-            }
-          }.disabled(newInventoryName.isEmpty || isCreatingInventory)
+            .disabled(newInventoryName.isEmpty || isCreatingInventory)
         }
         .padding(.vertical)
     }
-  
+
     private func createData() async {
-      isCreatingInventory = true
-      do {
-        let createdInventory = try await APIClient.shared.createInventory(name: newInventoryName)
-        withAnimation {
-          isShowNewInventoryInput = false
-          newInventoryName = ""
-          inventories.insert(createdInventory, at: 0)
+        isCreatingInventory = true
+        do {
+            let createdInventory = try await APIClient.shared.createInventory(name: newInventoryName)
+            withAnimation {
+                isShowNewInventoryInput = false
+                newInventoryName = ""
+                inventories.insert(createdInventory, at: 0)
+            }
+        } catch {
+            // TODO エラー処理
+            print(error)
         }
-      } catch {
-        // TODO エラー処理
-        print(error)
-      }
-      isCreatingInventory = false
+        isCreatingInventory = false
     }
 
     private func fetchData() async {
@@ -136,5 +137,3 @@ struct InventoryListView: View {
     InventoryListView()
 }
 #endif
-
-
