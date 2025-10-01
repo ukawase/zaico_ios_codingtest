@@ -4,7 +4,8 @@ import UIKit
 // SwiftUI list for inventories
 struct InventoryListView: View {
     @State private var inventories: [Inventory] = []
-    @State private var newInventoryName: String? = nil
+    @State private var isShowNewInventoryInput = false
+    @State private var newInventoryName = ""
     @State private var isCreatingInventory: Bool = false
     @FocusState private var isFocus: Bool
 
@@ -14,26 +15,26 @@ struct InventoryListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
               ToolbarItem(placement: .primaryAction) {
-                if newInventoryName == nil {
+                if !isShowNewInventoryInput {
                     Button("在庫を追加", systemImage: "plus.app") {
                       withAnimation {
-                        newInventoryName = ""
+                        isShowNewInventoryInput = true
                       }
                     }
                 } else {
                   Button("キャンセル", role: .destructive) {
                     withAnimation {
-                      newInventoryName = nil
+                      isShowNewInventoryInput = false
                     }
                   }
                 }
               }
             })
-            .onChange(of: newInventoryName, { oldValue, newValue in
-              if newValue == nil {
-                isFocus = false
-              } else if oldValue == nil && newValue != nil {
+            .onChange(of: isShowNewInventoryInput, { oldValue, newValue in
+              if newValue {
                 isFocus = true
+              } else {
+                isFocus = false
               }
             })
             .task { await fetchData() }
@@ -60,31 +61,28 @@ struct InventoryListView: View {
             }
           }
         }, header: {
-          if newInventoryName != nil {
-            newInventoryCell(
-              name: Binding(
-                get: { newInventoryName ?? "" },
-                set: { newValue in
-                  if !newValue.isEmpty {
-                    newInventoryName = newValue
-                  }
-                }
-              )
-            )
+          if isShowNewInventoryInput {
+            newInventoryCell
           }
         })
       }
     }
   
-    private func newInventoryCell(name: Binding<String>) -> some View {
+    private var newInventoryCell:  some View {
         HStack {
-          TextField("追加する在庫名", text: name)
+          TextField("追加する在庫名", text: $newInventoryName)
             .frame(maxWidth: .infinity)
             .focused($isFocus)
+            .font(.body)
+            .disabled(isCreatingInventory)
             .onSubmit {
-              if name.wrappedValue.isEmpty {
+              if newInventoryName.isEmpty {
                 withAnimation {
-                  newInventoryName = nil
+                  isShowNewInventoryInput = false
+                }
+              } else {
+                Task {
+                  await createData()
                 }
               }
             }
@@ -92,13 +90,20 @@ struct InventoryListView: View {
             Task {
               await createData()
             }
-          }.disabled(name.wrappedValue.isEmpty || isCreatingInventory)
+          }.disabled(newInventoryName.isEmpty || isCreatingInventory)
         }
         .padding(.vertical)
     }
   
     private func createData() async {
-      print("createData")
+      isCreatingInventory = true
+      do {
+        let response = try await APIClient.shared.createInventory(name: newInventoryName)
+      } catch {
+        // TODO エラー処理
+        print(error)
+      }
+      isCreatingInventory = false
     }
 
     private func fetchData() async {

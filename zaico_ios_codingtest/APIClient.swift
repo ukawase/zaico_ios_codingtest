@@ -7,6 +7,18 @@
 
 import Foundation
 
+struct CreateInventoryResponse: Codable {
+    let code: Int
+    let status: String
+    let message: String
+    let dataId: Int
+
+    enum CodingKeys: String, CodingKey {
+        case code, status, message
+        case dataId = "data_id"
+    }
+}
+
 class APIClient {
     static let shared = APIClient()
     
@@ -78,5 +90,42 @@ class APIClient {
             throw error
         }
     }
+  
+  func createInventory(name: String) async throws -> CreateInventoryResponse {
+    // TODO
+    
+    try? await Task.sleep(nanoseconds: 1_000_000_000)
+    var endpoint = "/api/v1/inventories"
+    
+    guard let url = URL(string: baseURL + endpoint) else {
+        throw URLError(.badURL)
+    }
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    let body: [String: String] = ["title": name]
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+    
+    do {
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            if !(200...299).contains(httpResponse.statusCode) {
+                throw URLError(.badServerResponse)
+            }
+        }
+
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("[APIClient] API Response: \(jsonString)")
+        }
+        
+        return try JSONDecoder().decode(CreateInventoryResponse.self, from: data)
+    } catch {
+        throw error
+    }
+    
+  }
 }
 
