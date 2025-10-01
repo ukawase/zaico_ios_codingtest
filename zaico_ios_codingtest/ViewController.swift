@@ -73,6 +73,7 @@ struct InventoryListView: View {
       }
     }
   
+    // 在庫追加フォーム
     private var newInventoryCell:  some View {
         HStack {
           TextField("追加する在庫名", text: $newInventoryName)
@@ -104,8 +105,6 @@ struct InventoryListView: View {
       isCreatingInventory = true
       do {
         let createdInventory = try await APIClient.shared.createInventory(name: newInventoryName)
-        print("createdInventory", createdInventory)
-        
         withAnimation {
           isShowNewInventoryInput = false
           newInventoryName = ""

@@ -91,10 +91,7 @@ class APIClient {
         }
     }
   
-  func createInventory(name: String) async throws -> Inventory {
-    // TODO
-    
-    try? await Task.sleep(nanoseconds: 1_000_000_000)
+  func createInventory(name: String) async throws -> Inventory {    
     let endpoint = "/api/v1/inventories"
     
     guard let url = URL(string: baseURL + endpoint) else {
