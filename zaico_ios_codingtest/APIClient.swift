@@ -11,7 +11,7 @@ class APIClient {
     static let shared = APIClient()
     
     private let baseURL = "https://web.zaico.co.jp"
-    private let token = "YOUR_ACCESS_TOKEN" // 実際のトークンに置き換える
+    private let token = "etWXaPuKbWapRvUjE7281szrYH3k2Mkq" // 実際のトークンに置き換える
     
     private init() {}
 
