@@ -17,7 +17,7 @@ struct InventoryListView: View {
     var body: some View {
         List(inventories, id: \.id) { item in
             NavigationLink {
-                DetailViewRepresentable(id: item.id)
+                InventoryDetailView(id: item.id)
                     .navigationTitle("詳細")
             } label: {
                 HStack {
@@ -51,7 +51,7 @@ struct InventoryListView: View {
 }
 
 // Wrap existing UIKit DetailViewController so we can push it from SwiftUI
-struct DetailViewRepresentable: UIViewControllerRepresentable {
+struct InventoryDetailView: UIViewControllerRepresentable {
     let id: Int
 
     func makeUIViewController(context: Context) -> UIViewController {
