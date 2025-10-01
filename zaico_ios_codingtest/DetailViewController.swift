@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class DetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -111,6 +112,21 @@ class DetailViewController: UIViewController, UITableViewDataSource, UITableView
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
+    }
+}
+
+
+
+// Wrap existing UIKit DetailViewController so we can push it from SwiftUI
+struct InventoryDetailView: UIViewControllerRepresentable {
+    let id: Int
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        DetailViewController(id: id)
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        // No-op: detail view is configured via initializer
     }
 }
 
