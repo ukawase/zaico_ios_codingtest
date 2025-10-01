@@ -1,69 +1,71 @@
-//
-//  ViewController.swift
-//  zaico_ios_codingtest
-//
-//  Created by ryo hirota on 2025/03/11.
-//
-
+import SwiftUI
 import UIKit
 
-class MainViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    private let tableView = UITableView()
-    private var inventories: [Inventory] = []
+struct MainNavigationView: View {
+  
+  var body: some View {
+    NavigationStack {
+      InventoryListView()
+    }
+  }
+}
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .white
-        title = "在庫一覧"
-        
-        setupTableView()
-        
-        Task {
-            await fetchData()
+// SwiftUI list for inventories
+struct InventoryListView: View {
+    @State private var inventories: [Inventory] = []
+
+    var body: some View {
+        List(inventories, id: \.id) { item in
+            NavigationLink {
+                DetailViewRepresentable(id: item.id)
+                    .navigationTitle("詳細")
+            } label: {
+                HStack {
+                    Text("\(item.id)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(item.title)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                }
+                .padding(.vertical, 4)
+            }
         }
+        .navigationTitle("在庫一覧")
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await fetchData() }
     }
 
-    private func setupTableView() {
-        view.addSubview(tableView)
-        tableView.register(InventoryCell.self, forCellReuseIdentifier: "InventoryCell")
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
-        
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-    }
-    
     private func fetchData() async {
         do {
             let data = try await APIClient.shared.fetchInventories()
             await MainActor.run {
                 inventories = data
-                tableView.reloadData()
             }
         } catch {
+            // Consider surfacing an alert/toast in a real app
             print("Error fetching data: \(error.localizedDescription)")
         }
     }
+}
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return inventories.count
+// Wrap existing UIKit DetailViewController so we can push it from SwiftUI
+struct DetailViewRepresentable: UIViewControllerRepresentable {
+    let id: Int
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        DetailViewController(id: id)
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "InventoryCell", for: indexPath) as! InventoryCell
-        cell.configure(leftText: String(inventories[indexPath.row].id),
-                       rightText: inventories[indexPath.row].title)
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let detailVC = DetailViewController(id: inventories[indexPath.row].id)
-        navigationController?.pushViewController(detailVC, animated: true)
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        // No-op: detail view is configured via initializer
     }
 }
+
+// Optional SwiftUI preview (ignored at runtime)
+#if DEBUG
+#Preview {
+    InventoryListView()
+}
+#endif

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -19,10 +20,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
         let window = UIWindow(windowScene: windowScene)
-        let rootViewController = MainViewController()
-        let navigationController = UINavigationController(rootViewController: rootViewController)
+        // Initialize SwiftUI view as the root with NavigationStack for proper navigation
+        let rootView = MainNavigationView()
+        let hostingController = UIHostingController(rootView: rootView)
         
-        window.rootViewController = navigationController
+        window.rootViewController = hostingController
         window.makeKeyAndVisible()
         
         self.window = window
