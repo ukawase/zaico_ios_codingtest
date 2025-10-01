@@ -91,11 +91,11 @@ class APIClient {
         }
     }
   
-  func createInventory(name: String) async throws -> CreateInventoryResponse {
+  func createInventory(name: String) async throws -> Inventory {
     // TODO
     
     try? await Task.sleep(nanoseconds: 1_000_000_000)
-    var endpoint = "/api/v1/inventories"
+    let endpoint = "/api/v1/inventories"
     
     guard let url = URL(string: baseURL + endpoint) else {
         throw URLError(.badURL)
@@ -120,8 +120,11 @@ class APIClient {
         if let jsonString = String(data: data, encoding: .utf8) {
             print("[APIClient] API Response: \(jsonString)")
         }
+      
+        let createInventoryResponse = try JSONDecoder().decode(CreateInventoryResponse.self, from: data)
+        let inventory = try await fetchInventorie(id: createInventoryResponse.dataId)
         
-        return try JSONDecoder().decode(CreateInventoryResponse.self, from: data)
+        return inventory
     } catch {
         throw error
     }

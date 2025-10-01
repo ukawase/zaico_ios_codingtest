@@ -13,23 +13,7 @@ struct InventoryListView: View {
         contents
             .navigationTitle("在庫一覧")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
-              ToolbarItem(placement: .primaryAction) {
-                if !isShowNewInventoryInput {
-                    Button("在庫を追加", systemImage: "plus.app") {
-                      withAnimation {
-                        isShowNewInventoryInput = true
-                      }
-                    }
-                } else {
-                  Button("キャンセル", role: .destructive) {
-                    withAnimation {
-                      isShowNewInventoryInput = false
-                    }
-                  }
-                }
-              }
-            })
+            .toolbar { toolbarContent() }
             .onChange(of: isShowNewInventoryInput, { oldValue, newValue in
               if newValue {
                 isFocus = true
@@ -38,6 +22,29 @@ struct InventoryListView: View {
               }
             })
             .task { await fetchData() }
+    }
+  
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            if !isShowNewInventoryInput {
+                Button("在庫を追加", systemImage: "plus.app") {
+                    withAnimation {
+                        isShowNewInventoryInput = true
+                    }
+                }
+            } else {
+                if isCreatingInventory {
+                    ProgressView()
+                } else {
+                    Button("キャンセル", role: .destructive) {
+                        withAnimation {
+                            isShowNewInventoryInput = false
+                        }
+                    }
+                }
+            }
+        }
     }
   
     private var contents: some View {
@@ -49,9 +56,7 @@ struct InventoryListView: View {
                     .navigationTitle("詳細")
             } label: {
                 HStack {
-                    Text("\(item.id)")
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                    Text(String(item.id))
                     Spacer()
                     Text(item.title)
                         .foregroundStyle(.primary)
@@ -98,7 +103,14 @@ struct InventoryListView: View {
     private func createData() async {
       isCreatingInventory = true
       do {
-        let response = try await APIClient.shared.createInventory(name: newInventoryName)
+        let createdInventory = try await APIClient.shared.createInventory(name: newInventoryName)
+        print("createdInventory", createdInventory)
+        
+        withAnimation {
+          isShowNewInventoryInput = false
+          newInventoryName = ""
+          inventories.insert(createdInventory, at: 0)
+        }
       } catch {
         // TODO エラー処理
         print(error)
